@@ -32,6 +32,10 @@ server {
   #  try_files $uri $uri/ /blog/index.php?$args;
   #}
 
+  #include /etc/nginx/pagespeed.conf;
+  #pagespeed on;
+  #pagespeed FileCachePath "/home/cloudpanel/htdocs/domain.com/wp-content/cache/ngx_pagespeed/";
+
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
 
