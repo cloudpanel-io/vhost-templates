@@ -11,20 +11,11 @@ server {
   {{nginx_access_log}}
   {{nginx_error_log}}
 
-  #if ($bad_bot = 1) {
-  #  return 403;
-  #}
-
   if ($scheme != "https") {
     rewrite ^ https://$host$uri permanent;
   }
 
-  location ~ /.well-known {
-    auth_basic off;
-    allow all;
-  }
-
-  {{basic_auth}}
+  {{settings}}
 
   try_files $uri $uri/ /index.php?$args =404;
   index index.php index.html;
