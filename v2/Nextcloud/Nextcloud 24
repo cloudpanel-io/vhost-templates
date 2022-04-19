@@ -25,6 +25,8 @@ server {
     allow all;
   }
 
+  {{settings}}
+
   location / {
     rewrite ^ /index.php;
   }

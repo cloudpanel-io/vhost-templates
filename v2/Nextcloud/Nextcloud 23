@@ -17,7 +17,6 @@ server {
   }
 
   location ^~ /.well-known {
-
     location = /.well-known/carddav  { return 301 /remote.php/dav/; }
     location = /.well-known/caldav   { return 301 /remote.php/dav/; }
     location ^~ /.well-known         { return 301 /index.php$uri; }
@@ -25,6 +24,8 @@ server {
     auth_basic off;
     allow all;
   }
+
+  {{settings}}
 
   location / {
     rewrite ^ /index.php;
