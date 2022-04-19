@@ -15,6 +15,11 @@ server {
     rewrite ^ https://$host$uri permanent;
   }
 
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
   {{settings}}
 
   index index.html;
