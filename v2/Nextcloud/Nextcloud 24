@@ -1,4 +1,4 @@
-#{"rootDirectory":"public","phpVersion":"8.0"}
+#{"rootDirectory":"public","phpVersion":"8.1"}
 server {
   listen 80;
   listen [::]:80;
@@ -17,7 +17,6 @@ server {
   }
 
   location ^~ /.well-known {
-
     location = /.well-known/carddav  { return 301 /remote.php/dav/; }
     location = /.well-known/caldav   { return 301 /remote.php/dav/; }
     location ^~ /.well-known         { return 301 /index.php$uri; }
