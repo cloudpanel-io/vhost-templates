@@ -24,6 +24,13 @@ server {
 
   index index.html;
 
+  location /uwsgi {
+    include uwsgi_params;
+    uwsgi_read_timeout 3600;
+    #uwsgi_pass unix:///run/uwsgi/app/weblate/socket;
+    uwsgi_pass 127.0.0.1:{{app_port}};
+  }
+
   location / {
     proxy_pass http://127.0.0.1:{{app_port}}/;
     proxy_http_version 1.1;
@@ -44,5 +51,15 @@ server {
     proxy_buffers 4 256k;
     proxy_busy_buffers_size 256k;
     proxy_temp_file_write_size 256k;
+  }
+
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+    add_header Access-Control-Allow-Origin "*";
+    expires max;
+    access_log on;
+  }
+
+  if (-f $request_filename) {
+    break;
   }
 }
