@@ -1,0 +1,80 @@
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  {{ssl_certificate_key}}
+  {{ssl_certificate}}
+  {{server_name}}
+  {{root}}
+
+  {{nginx_access_log}}
+  {{nginx_error_log}}
+
+# header section
+add_header X-XSS-Protection               "1, mode=block" always;
+add_header X-Content-Type-Options         "nosniff" always;
+add_header Permissions-Policy             "camera=(), geolocation=(), microphone=(), payment=(), interest-cohort=()" always;
+add_header Strict-Transport-Security      "max-age=31536000; includeSubDomains" always;
+add_header Referrer-Policy                "same-origin" always;
+add_header Cross-Origin-Opener-Policy     "same-origin" always;
+add_header Cross-Origin-Resource-Policy   "same-site" always;
+    set $CSP_DEFAULT  "default-src 'self'";
+    set $CSP_SCRIPT   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com";
+    set $CSP_STYLE    "style-src 'self' 'unsafe-inline'";
+    set $CSP_IMG      "img-src 'self'";
+    set $CSP_FRAME    "frame-src 'self' https://www.youtube-nocookie.com https://www.google.com";
+    set $CSP_CONNECT  "connect-src 'self'";
+    set $CSP_UIR      "upgrade-insecure-requests";
+
+add_header Content-Security-Policy "${CSP_DEFAULT}; ${CSP_SCRIPT}; ${CSP_STYLE}; ${CSP_IMG}; ${CSP_FRAME}; ${CSP_CONNECT}; ${CSP_UIR}" always;
+
+
+  if ($scheme != "https") {
+    rewrite ^ https://$host$uri permanent;
+  }
+
+location / {
+    index index.php;
+
+    try_files $uri $uri/ @rewrite;
+}
+location @rewrite {
+    rewrite ^/(forum/|cms/|wcf/|calendar/|filebase/|blog/|gallery/)?([^.]+)$ /$1index.php?$2 last;
+}
+
+
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
+  {{settings}}
+  
+
+ try_files $uri $uri/ /index.php?$args;
+  index index.php index.html;
+
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_intercept_errors on;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    try_files $uri =404;
+    fastcgi_read_timeout 3600;
+    fastcgi_send_timeout 3600;
+    fastcgi_param HTTPS $fastcgi_https;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+    fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+    add_header Access-Control-Allow-Origin "*";
+    expires max;
+    access_log off;
+  }
+
+  if (-f $request_filename) {
+    break;
+  }
+}
