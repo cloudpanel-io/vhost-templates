@@ -19,15 +19,6 @@ add_header Strict-Transport-Security      "max-age=31536000; includeSubDomains" 
 add_header Referrer-Policy                "same-origin" always;
 add_header Cross-Origin-Opener-Policy     "same-origin" always;
 add_header Cross-Origin-Resource-Policy   "same-site" always;
-    set $CSP_DEFAULT  "default-src 'self'";
-    set $CSP_SCRIPT   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com";
-    set $CSP_STYLE    "style-src 'self' 'unsafe-inline'";
-    set $CSP_IMG      "img-src 'self'";
-    set $CSP_FRAME    "frame-src 'self' https://www.youtube-nocookie.com https://www.google.com";
-    set $CSP_CONNECT  "connect-src 'self'";
-    set $CSP_UIR      "upgrade-insecure-requests";
-
-add_header Content-Security-Policy "${CSP_DEFAULT}; ${CSP_SCRIPT}; ${CSP_STYLE}; ${CSP_IMG}; ${CSP_FRAME}; ${CSP_CONNECT}; ${CSP_UIR}" always;
 
 
   if ($scheme != "https") {
