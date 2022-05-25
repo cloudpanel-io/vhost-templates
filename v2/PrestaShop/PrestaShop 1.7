@@ -12,9 +12,9 @@ server {
   {{nginx_access_log}}
   {{nginx_error_log}}
 
-  #if ($scheme != "https") {
-  #  rewrite ^ https://$host$uri permanent;
-  #}
+  if ($scheme != "https") {
+    rewrite ^ https://$host$uri permanent;
+  }
 
   location ~ /.well-known {
     auth_basic off;
