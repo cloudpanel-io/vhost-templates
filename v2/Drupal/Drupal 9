@@ -12,44 +12,46 @@ server {
   {{nginx_access_log}}
   {{nginx_error_log}}
 
-  if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
-  }
-
-  location ~ /.well-known {
-    auth_basic off;
-    allow all;
-  }
-
-  {{settings}}
-
+  # Redirect HTTP to HTTPS
+    if ($scheme = http) {
+        return 301 https://$server_name$request_uri;
+    }
     location = /favicon.ico {
         log_not_found off;
         access_log off;
     }
-	
+
     location = /robots.txt {
         allow all;
         log_not_found off;
         access_log off;
     }
+
     # Very rarely should these ever be accessed outside of your lan
     location ~* \.(txt|log)$ {
         allow 192.168.0.0/16;
         deny all;
     }
+
     location ~ \..*/.*\.php$ {
         return 403;
     }
+
     location ~ ^/sites/.*/private/ {
         return 403;
     }
+	
+	
+	
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+    # Block access to "hidden" files and directories whose names begin with a
+    # period. This includes directories used by version control systems such
+    # as Subversion or Git to store control files.
     location ~ (^|/)\. {
         return 403;
-    }
-
-    location @rewrite {
-        rewrite ^/(.*)$ /index.php?q=$1;
     }
 
     location / {
@@ -57,8 +59,29 @@ server {
         try_files $uri /index.php?$query_string; # For Drupal >= 7
     }
 
-  location ~ \.php$ {
+    location @rewrite {
+        rewrite ^/(.*)$ /index.php?q=$1;
+    }
+	
+	
+  {{settings}}
+
+   # Don't allow direct access to PHP files in the vendor directory.
+    location ~ /vendor/.*\.php$ {
+        deny all;
+        return 404;
+    }
+
+    # Protect files and directories from prying eyes.
+    location ~* \.(engine|inc|install|make|module|profile|po|sh|.*sql|theme|twig|tpl(\.php)?|xtmpl|yml)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\.(?!well-known).*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock)|web\.config)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig|\.save)$ {
+        deny all;
+        return 404;
+    }
+
+    location ~ '\.php$|^/update.php' {
+	fastcgi_split_path_info ^(.+?\.php)(|/.*)$;
     include fastcgi_params;
+	include snippets/fastcgi-php.conf;
     fastcgi_intercept_errors on;
     fastcgi_index index.php;
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -69,14 +92,28 @@ server {
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
-location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+    # Fighting with Styles? This little gem is amazing.
+    # location ~ ^/sites/.*/files/imagecache/ { # For Drupal <= 6
+    location ~ ^/sites/.*/files/styles/ { # For Drpal >= 7
         try_files $uri @rewrite;
-        expires max;
-        log_not_found off;
-    }
-   
+    }  
 
-  if (-f $request_filename) {
-    break;
+  location ~* \.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+    try_files $uri @rewrite;
+    expires max;
+    access_log off;
   }
+    # Handle private files through Drupal. Private file's path can come
+    # with a language prefix.
+    location ~ ^(/[a-z\-]+)?/system/files/ { # For Drupal >= 7
+        try_files $uri /index.php?$query_string;
+    }
+
+    # Enforce clean URLs
+    # Removes index.php from urls like www.example.com/index.php/my-page --> www.example.com/my-page
+    # Could be done with 301 for permanent or other redirect codes.
+    if ($request_uri ~* "^(.*/)index\.php/(.*)") {
+        return 307 $1$2;
+    }
+ 
 }
