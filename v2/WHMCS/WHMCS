@@ -30,13 +30,14 @@ server {
     error_page 404 /index.php?$query_string;
     try_files $uri $uri/ /index.php?$query_string;
   }
-  location ~ /admin/(client!\.php|search|apps|billing|setup|user|services|addons|domains|utilities|help!\.php|help/license|image/(recent|upload))/?(.*)$ {
-		rewrite ^/(.*)$ /admin/index.php?rp=/admin/$1/$2;
-	}
 
-	location ~ /(login|password|account|store|download|knowledgebase|announcements|clientarea/ssl-certificates|user/(profile|password|security)|cart/(domain/renew)|images/kb)/?(.*)$ {
+  location ~ /admin/(client!\.php|search|apps|billing|setup|user|services|addons|domains|utilities|help!\.php|help/license|image/(recent|upload))/?(.*)$ {
+    rewrite ^/(.*)$ /admin/index.php?rp=/admin/$1/$2;
+  }
+
+  location ~ /(login|password|account|store|download|knowledgebase|announcements|clientarea/ssl-certificates|user/(profile|password|security)|cart/(domain/renew)|images/kb)/?(.*)$ {
     rewrite ^/(.*)$ /index.php?rp=/$1/$2;
-	}
+  }
 
   ## WHMCS Security Advisory 2020-01-28 (https://docs.whmcs.com/Security_Advisory_2020-01-28)
   location ^~ /vendor/ {
