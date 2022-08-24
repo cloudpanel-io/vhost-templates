@@ -20,6 +20,8 @@ server {
     auth_basic off;
     allow all;
   }
+  
+  rewrite ^/core/authorize.php/core/authorize.php(.*)$ /core/authorize.php$1;
 
   location ~ (^|/)\. {
     return 403;
