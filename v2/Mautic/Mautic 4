@@ -31,6 +31,10 @@ server {
     return 403;
   }
 
+  location ~ (.*).js {
+    try_files $uri /index.php?$args;
+  }
+
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
 
