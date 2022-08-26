@@ -31,6 +31,10 @@ server {
     return 403;
   }
 
+  location ~ email/(.*).gif {
+    try_files $uri /index.php?$args;
+  }
+
   location ~ (.*).js {
     try_files $uri /index.php?$args;
   }
