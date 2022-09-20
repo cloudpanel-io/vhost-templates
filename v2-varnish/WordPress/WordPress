@@ -57,7 +57,7 @@ server {
   {{settings}}
 
   location / {
-    {{proxy_pass}}
+    {{varnish_proxy_pass}}
     proxy_set_header Host $http_host;
     proxy_set_header X-Forwarded-Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
