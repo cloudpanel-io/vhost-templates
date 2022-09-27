@@ -1,4 +1,4 @@
-#{"rootDirectory":"","phpVersion":"8.0","varnishCacheSettings":{"cacheLifetime":"604800","controller":"wordpress","excludes":["wp-login.php","^\/wp-admin\/","t.php"],"excludedParams":["__SID","noCache"]}}
+#{"rootDirectory":"","phpVersion":"8.0","varnishCacheSettings":{"cacheLifetime":"604800","controller":"wordpress","excludes":["^\/my-account\/","\/cart\/","\/checkout\/","wp-login.php"],"excludedParams":["__SID","noCache"]}}
 server {
   listen 8080;
   listen [::]:8080;
