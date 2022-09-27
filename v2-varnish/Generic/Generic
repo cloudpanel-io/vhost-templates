@@ -1,4 +1,4 @@
-#{"rootDirectory":"","phpVersion":"8.1","varnishCacheSettings":{"cacheLifetime":"604800","controller":"generic","excludes":[""],"excludedParams":["__SID","noCache"]}}
+#{"rootDirectory":"","phpVersion":"8.1","varnishCacheSettings":{"cacheLifetime":"604800","controller":"generic","excludes":["^\/admin\/"],"excludedParams":["__SID","noCache"]}}
 server {
   listen 8080;
   listen [::]:8080;
