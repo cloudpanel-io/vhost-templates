@@ -17,6 +17,7 @@ server {
     fastcgi_read_timeout 3600;
     fastcgi_send_timeout 3600;
     fastcgi_param HTTPS "on";
+    fastcgi_param SERVER_PORT 443;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
