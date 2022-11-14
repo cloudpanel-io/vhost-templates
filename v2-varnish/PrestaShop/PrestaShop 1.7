@@ -8,6 +8,7 @@ server {
   {{ssl_certificate}}
   {{server_name}}
   {{root}}
+  large_client_header_buffers 4 32k;
 
   {{nginx_access_log}}
   {{nginx_error_log}}
