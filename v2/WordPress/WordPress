@@ -45,6 +45,11 @@ server {
     access_log off;
   }
 
+  if (!-e $request_filename) {
+    rewrite ^(/[^/]+)?(/wp-.*) $2 last;
+    rewrite ^(/[^/]+)?(/.*\.php) $2 last;
+  }
+
   if (-f $request_filename) {
     break;
   }
