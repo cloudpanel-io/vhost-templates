@@ -22,6 +22,13 @@ server {
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
 
+  # WordPress Multisite Subdirectory
+  if (!-e $request_filename) {
+    rewrite /wp-admin$ https://$host$uri permanent;
+    rewrite ^/[_0-9a-zA-Z-]+(/wp-.*) $1 last;
+    rewrite ^/[_0-9a-zA-Z-]+(/.*\.php)$ $1 last;
+  }
+
   if (-f $request_filename) {
     break;
   }
@@ -90,6 +97,9 @@ server {
   }
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map)$ {
+    # WordPress Multisite Subdirectory
+    rewrite ^/[_0-9a-zA-Z-]+(/wp-.*) $1 break;
+    rewrite ^/[_0-9a-zA-Z-]+(/.*\.php)$ $1 break;
     add_header Access-Control-Allow-Origin "*";
     expires max;
     access_log off;
