@@ -22,6 +22,8 @@ server {
 
   {{settings}}
 
+  add_header Cache-Control no-transform;
+
   index index.html;
 
   location / {
