@@ -31,15 +31,86 @@ server {
     try_files $uri $uri/ /index.php?$query_string;
   }
 
-  location ~ /admin/(client!\.php|search|apps|billing|setup|user|services|addons|domains|utilities|help!\.php|help/license|image/(recent|upload))/?(.*)$ {
-    rewrite ^/(.*)$ /admin/index.php?rp=/admin/$1/$2;
+  location ~ /announcements/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/announcements/$1;
   }
 
-  location ~ /(login|password|account|store|download|knowledgebase|announcements|clientarea/ssl-certificates|user/(profile|password|security)|cart/(domain/renew)|images/kb)/?(.*)$ {
-    rewrite ^/(.*)$ /index.php?rp=/$1/$2;
+  location ~ /download/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/download$1;
   }
 
-  ## WHMCS Security Advisory 2020-01-28 (https://docs.whmcs.com/Security_Advisory_2020-01-28)
+  location ~ /knowledgebase/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/knowledgebase/$1;
+  }
+
+  location ~ /store/ssl-certificates/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/store/ssl-certificates/$1;
+  }
+
+  location ~ /store/sitelock/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/store/sitelock/$1;
+  }
+
+  location ~ /store/website-builder/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/store/website-builder/$1;
+  }
+
+  location ~ /store/order/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/store/order/$1;
+  }
+
+  location ~ /hosting/cart/domain/renew/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/cart/domain/renew$1;
+  }
+
+  location ~ /account/paymentmethods/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/account/paymentmethods$1;
+  }
+
+  location ~ /password/reset/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/password/reset/$1;
+  }
+
+  location ~ /account/security/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/account/security$1;
+  }
+
+  location ~ /subscription?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=/subscription$1;
+  }
+
+  location ~ /auth/provider/google_signin/finalize/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/index.php?rp=auth/provider/google_signin/finalize$1;
+  }
+
+  location ~ /admin/(addons|apps|search|domains|help\/license|services|setup|utilities\/system\/php-compat)(.*) {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/admin/$1$2 last;
+  }
+
+  location ~ /admin/client/?(.*)/paymethods/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/client/?(.*)/paymethods/$1;
+  }
+
+  location ~ /admin/setup/auth/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/setup/auth/$1;
+  }
+
+  location ~ /admin/client/?(.*)/tickets/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/client/?(.*)/tickets/$1;
+  }
+
+  location ~ /admin/client/?(.*)/invoice/?(.*)/capture/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/client/?(.*)/invoice/?(.*)/capture/$1;
+  }
+
+  location ~ /admin/account/security/two-factor/?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/admin/account/security/two-factor/$1;
+  }
+
+  location ~ /admin/search/intellisearch?(.*)$ {
+    rewrite ^/(.*)$ /hosting/admin/index.php?rp=/search/intellisearch/$1;
+  }
+
   location ^~ /vendor/ {
     deny all;
     return 403;
