@@ -1,4 +1,4 @@
-#{"rootDirectory":"public","phpVersion":"8.2"}
+#{"rootDirectory":"","phpVersion":"8.2"}
 server {
   listen 80;
   listen [::]:80;
@@ -23,6 +23,7 @@ server {
 
   {{settings}}
 
+  rewrite ^/public/installer /public/index.php last;
   location ~/shopware-installer.phar.php/ {
     try_files $uri $uri/ /shopware-installer.phar.php?$args;
   }
