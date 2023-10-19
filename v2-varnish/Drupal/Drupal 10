@@ -38,7 +38,7 @@ server {
   }
 
   location @rewrite {
-    rewrite ^/(.*)$ /index.php?q=$1;
+    rewrite ^ /index.php;
   }
 
   location ~ ^(/[a-z\-]+)?/system/files/ { # For Drupal >= 7
@@ -80,6 +80,7 @@ server {
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|ico|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
     add_header Access-Control-Allow-Origin "*";
+    try_files $uri @rewrite;
     expires max;
     access_log off;
   }
