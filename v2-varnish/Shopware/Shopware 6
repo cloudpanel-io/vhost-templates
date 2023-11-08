@@ -1,4 +1,4 @@
-#{"rootDirectory":"public","phpVersion":"8.0"}
+#{"rootDirectory":"public","phpVersion":"8.2"}
 server {
   listen 80;
   listen [::]:80;
@@ -45,6 +45,10 @@ server {
     fastcgi_param HTTPS $fastcgi_https;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  location / {
+    try_files $uri /index.php$is_args$args;
   }
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
