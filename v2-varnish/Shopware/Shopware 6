@@ -23,10 +23,6 @@ server {
 
   {{settings}}
 
-  #location ~/shopware-installer.phar.php/ {
-  #  try_files $uri $uri/ /shopware-installer.phar.php?$args;
-  #}
-
   #location /recovery/install/ {
   #  try_files $uri $uri/ /recovery/install/index.php?$args;
   #}
