@@ -15,18 +15,7 @@ server {
     rewrite ^ https://$host$uri permanent;
   }
 
-  location ~ /.well-known {
-    auth_basic off;
-    allow all;
-  }
-
-  {{settings}}
-
-  add_header Cache-Control no-transform;
-
-  index index.html;
-
-  location / {
+  location @reverse_proxy {
     proxy_pass {{reverse_proxy_url}};
     proxy_http_version 1.1;
     proxy_set_header X-Forwarded-Host $host;
@@ -46,5 +35,21 @@ server {
     proxy_buffers 4 256k;
     proxy_busy_buffers_size 256k;
     proxy_temp_file_write_size 256k;
+  }
+
+  {{settings}}
+
+  add_header Cache-Control no-transform;
+
+  index index.html;
+
+  location ^~ /.well-known {
+    auth_basic off;
+    allow all;
+    try_files $uri @reverse_proxy;
+  }
+
+  location / {
+    try_files $uri @reverse_proxy;
   }
 }
