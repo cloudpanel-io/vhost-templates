@@ -20,9 +20,36 @@ server {
     auth_basic off;
     allow all;
   }
-  
+
   rewrite ^/core/authorize.php/core/authorize.php(.*)$ /core/authorize.php$1;
 
+  location = /favicon.ico {
+    log_not_found off;
+    access_log off;
+  }
+
+  location = /robots.txt {
+    allow all;
+    log_not_found off;
+    access_log off;
+  }
+
+  location ~ \..*/.*\.php$ {
+    return 403;
+  }
+
+  location ~ ^/sites/.*/private/ {
+    return 403;
+  }
+
+  # Block access to scripts in site files directory.
+  location ~ ^/sites/[^/]+/files/.*\.php$ {
+    deny all;
+  }
+
+  # Block access to "hidden" files and directories whose names begin with a
+  # period. This includes directories used by version control systems such
+  # as Subversion or Git to store control files.
   location ~ (^|/)\. {
     return 403;
   }
@@ -38,20 +65,28 @@ server {
   }
 
   location @rewrite {
-    rewrite ^/(.*)$ /index.php?q=$1;
+    rewrite ^ /index.php;
   }
 
-  location ~ ^(/[a-z\-]+)?/system/files/ { # For Drupal >= 7
+  # Handle private files through Drupal.
+  location ~ ^(/[a-z\-]+)?/system/files/ {
     try_files $uri /index.php?$query_string;
   }
 
+  # Don't allow direct access to PHP files in the vendor directory.
+  location ~ /vendor/.*\.php$ {
+    deny all;
+    return 404;
+  }
+
+  # Enforce clean URLs.
   if ($request_uri ~* "^(.*/)index\.php/(.*)") {
     return 307 $1$2;
   }
 
   index index.php index.html;
 
-  location ~ ^/update.php {
+  location ~ \.php$|^/update.php {
     fastcgi_split_path_info ^(.+?\.php)(|/.*)$;
     try_files $fastcgi_script_name =404;
     include fastcgi_params;
@@ -65,17 +100,10 @@ server {
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
 
-  location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_intercept_errors on;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    try_files $uri =404;
-    fastcgi_read_timeout 3600;
-    fastcgi_send_timeout 3600;
-    fastcgi_param HTTPS $fastcgi_https;
-    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
-    fastcgi_param PHP_VALUE "{{php_settings}}";
+  # Protect files and directories from prying eyes.
+  location ~* \.(engine|inc|install|make|module|profile|po|sh|.*sql|theme|twig|tpl(\.php)?|xtmpl|yml)(~|\.sw[op]|\.bak|\.orig|\.save)?$|^(\.(?!well-known).*|Entries.*|Repository|Root|Tag|Template|composer\.(json|lock)|web\.config)$|^#.*#$|\.php(~|\.sw[op]|\.bak|\.orig|\.save)$ {
+    deny all;
+    return 404;
   }
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|ico|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
