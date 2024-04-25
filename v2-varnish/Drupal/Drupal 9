@@ -56,7 +56,7 @@ server {
 
   {{settings}}
 
-  location ~ ^/sites/.*/files/styles/ {
+  location ~ ^/sites/.*/files/(css|js|styles)/ {
     try_files $uri @rewrite;
   }
 
