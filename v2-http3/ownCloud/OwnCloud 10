@@ -29,7 +29,7 @@ server {
 
   {{settings}}
 
-  include /etc/nginx/global_headers;
+  include /etc/nginx/global_settings;
 
   location = /.well-known/carddav {
     return 301 $scheme://$host/remote.php/dav;

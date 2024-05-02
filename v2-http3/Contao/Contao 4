@@ -27,7 +27,7 @@ server {
 
   {{settings}}
 
-  include /etc/nginx/global_headers;
+  include /etc/nginx/global_settings;
 
   location / {
     index index.php;

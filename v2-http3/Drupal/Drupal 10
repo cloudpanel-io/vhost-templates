@@ -33,7 +33,7 @@ server {
 
   {{settings}}
 
-  include /etc/nginx/global_headers;
+  include /etc/nginx/global_settings;
 
   location ~ ^/sites/.*/files/styles/ {
     try_files $uri @rewrite;
