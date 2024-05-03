@@ -40,6 +40,7 @@ server {
     }
     location ~* \.(ico|jpg|jpeg|png|gif|svg|js|css|swf|eot|ttf|otf|woff|woff2|html|json)$ {
       add_header Access-Control-Allow-Origin "*";
+      add_header alt-svc 'h3=":443"; ma=86400';
       expires max;
       access_log off;
       if (!-f $request_filename) {
