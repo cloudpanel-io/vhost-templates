@@ -27,11 +27,27 @@ server {
 
   {{settings}}
 
-  #location /recovery/install/ {
-  #  try_files $uri $uri/ /recovery/install/index.php?$args;
-  #}
 
-  include /etc/nginx/global_settings;
+  {{settings}}
+
+  location /recovery/update/ {
+    index index.php;
+    try_files $uri /recovery/install/index.php$is_args$args;
+  }
+
+  location ~ ^/(recovery\/update\/index|index|shopware-installer\.phar)\.php(/|$) {
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+    include fastcgi.conf;
+    fastcgi_param HTTP_PROXY "";
+    fastcgi_buffers 8 16k;
+    fastcgi_buffer_size 32k;
+    proxy_connect_timeout 300s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    send_timeout 300s;
+    client_body_buffer_size 128k;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+   }
 
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
@@ -49,9 +65,20 @@ server {
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
 
+  location = /sitemap.xml {
+    log_not_found off;
+    access_log off;
+    try_files $uri /;
+  }
+
+  location = /robots.txt {
+    log_not_found off;
+    access_log off;
+    try_files $uri /;
+  }
+
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
     add_header Access-Control-Allow-Origin "*";
-    add_header alt-svc 'h3=":443"; ma=86400';
     expires max;
     access_log off;
   }
