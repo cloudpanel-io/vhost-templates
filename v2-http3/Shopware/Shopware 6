@@ -27,9 +27,6 @@ server {
 
   {{settings}}
 
-
-  {{settings}}
-
   location /recovery/update/ {
     index index.php;
     try_files $uri /recovery/install/index.php$is_args$args;
