@@ -19,7 +19,7 @@ server {
   add_header Strict-Transport-Security "max-age=15552000; includeSubDomains";
 
   if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
+    rewrite ^ https://$host$request_uri permanent;
   }
 
   location ~ /.well-known {
