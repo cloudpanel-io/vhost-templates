@@ -44,7 +44,9 @@ server {
     send_timeout 300s;
     client_body_buffer_size 128k;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
-   }
+  }
+
+  include /etc/nginx/global_settings;
 
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
