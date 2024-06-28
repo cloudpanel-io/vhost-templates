@@ -2,20 +2,38 @@
 server {
   listen 80;
   listen [::]:80;
+  server_name www.yourcustomdomain.com;
+  return 301 https://yourcustomdomain.com$request_uri;
+}
+
+server {
+  listen 80;
+  listen [::]:80;
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
+  listen 443 quic;
+  listen [::]:443 quic;
+  http2 on;
+  http3 on;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
-  {{server_name}}
+  server_name yourcustomdomain.com www1.yourcustomdomain.com;
   {{root}}
+
+  client_max_body_size 128M;
 
   {{nginx_access_log}}
   {{nginx_error_log}}
 
+  # HSTS (HTTP Strict Transport Security) für zusätzliche Sicherheit
+  add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload" always;
+
+  # Redirect von HTTP auf HTTPS
   if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
+    return 301 https://$host$request_uri;
   }
 
+  # Ausnahme für .well-known Verzeichnis (z.B. für Let’s Encrypt)
   location ~ /.well-known {
     auth_basic off;
     allow all;
@@ -23,31 +41,89 @@ server {
 
   {{settings}}
 
-  location /recovery/install/ {
-    try_files $uri $uri/ /recovery/install/index.php?$args;
+  # Shopware Installations- und Update-Routen
+  location /recovery/install {
+    index index.php;
+    try_files $uri /recovery/install/index.php$is_args$args;
   }
 
-  try_files $uri $uri/ /index.php?$args;
-  index index.php index.html;
+  location /recovery/update/ {
+    location /recovery/update/assets {}
+    if (!-e $request_filename) {
+      rewrite . /recovery/update/index.php last;
+    }
+  }
 
+  # Caching und Performance-Optimierungen für statische Dateien
+  location ~* \.(?:css|cur|js|jpe?g|gif|ico|png|svg|webp|html|woff|woff2|xml)$ {
+    expires 1y;
+    add_header Cache-Control "public, must-revalidate, proxy-revalidate";
+    access_log off;
+    log_not_found off;
+    tcp_nodelay off;
+    open_file_cache max=3000 inactive=120s;
+    open_file_cache_valid 45s;
+    open_file_cache_min_uses 2;
+    open_file_cache_errors off;
+    try_files $uri /index.php$is_args$args;
+  }
+
+  # Content Security Policy für SVG-Dateien
+  location ~* \.svg$ {
+    add_header Content-Security-Policy "script-src 'none'";
+  }
+
+  # Standard-Routen für Shopware
+  location / {
+    try_files $uri /index.php$is_args$args;
+  }
+
+  # PHP-FPM Konfiguration
   location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_intercept_errors on;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    try_files $uri =404;
-    fastcgi_read_timeout 3600;
-    fastcgi_send_timeout 3600;
-    fastcgi_param HTTPS $fastcgi_https;
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+    include fastcgi.conf;
+    fastcgi_param HTTP_PROXY "";
+    fastcgi_buffers 8 16k;
+    fastcgi_buffer_size 32k;
+    proxy_connect_timeout 600s;
+    proxy_send_timeout 600s;
+    proxy_read_timeout 600s;
+    send_timeout 600s;
+    client_body_buffer_size 128k;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_intercept_errors on;
+    http2_push_preload on;
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }
 
-  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+  # Sitemap und robots.txt ohne Log
+  location = /sitemap.xml {
+    log_not_found off;
+    access_log off;
+    try_files $uri /index.php$is_args$args;
+  }
+
+  location = /robots.txt {
+    log_not_found off;
+    access_log off;
+    try_files $uri /index.php$is_args$args;
+  }
+
+  # Caching und Performance-Optimierungen für weitere statische Dateien
+  location ~* \.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
     add_header Access-Control-Allow-Origin "*";
     expires max;
     access_log off;
   }
+
+  # Inkludieren der globalen Einstellungen
+  include /etc/nginx/global_settings;
+
+  # Timeout-Einstellungen für den Server allgemein
+  client_body_timeout 600s;
+  client_header_timeout 600s;
+  send_timeout 600s;
 
   if (-f $request_filename) {
     break;
