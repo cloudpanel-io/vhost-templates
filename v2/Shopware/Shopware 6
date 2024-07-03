@@ -6,8 +6,10 @@ server {
   listen [::]:443 ssl http2;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
-  server_name yourserverdomain.de;
+  {{server_name}}
   {{root}}
+  {{nginx_access_log}}
+  {{nginx_error_log}}
 
     index index.php index.html;
     server_name localhost;
