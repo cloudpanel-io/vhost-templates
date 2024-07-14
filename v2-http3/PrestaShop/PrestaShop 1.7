@@ -1,0 +1,77 @@
+#{"rootDirectory":"","phpVersion":"7.3"}
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
+  {{ssl_certificate_key}}
+  {{ssl_certificate}}
+  {{server_name}}
+  {{root}}
+  large_client_header_buffers 4 32k;
+
+  {{nginx_access_log}}
+  {{nginx_error_log}}
+
+  #if ($scheme != "https") {
+  #  rewrite ^ https://$host$request_uri permanent;
+  #}
+
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
+  {{settings}}
+
+  location /admin-dev/ {
+    try_files $uri $uri/ /admin-dev/index.php?$args;
+  }
+
+  rewrite ^/(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$1$2.jpg last;
+  rewrite ^/(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$1$2$3.jpg last;
+  rewrite ^/(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$1$2$3$4.jpg last;
+  rewrite ^/(\d)(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$4/$1$2$3$4$5.jpg last;
+  rewrite ^/(\d)(\d)(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$4/$5/$1$2$3$4$5$6.jpg last;
+  rewrite ^/(\d)(\d)(\d)(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$4/$5/$6/$1$2$3$4$5$6$7.jpg last;
+  rewrite ^/(\d)(\d)(\d)(\d)(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$4/$5/$6/$7/$1$2$3$4$5$6$7$8.jpg last;
+  rewrite ^/(\d)(\d)(\d)(\d)(\d)(\d)(\d)(\d)(-[\w-]+)?/.+\.jpg$ /img/p/$1/$2/$3/$4/$5/$6/$7/$8/$1$2$3$4$5$6$7$8$9.jpg last;
+  rewrite ^/c/([\w.-]+)/.+\.jpg$ /img/c/$1.jpg last;
+
+  rewrite ^images_ie/?([^/]+)\.(gif|jpe?g|png)$ js/jquery/plugins/fancybox/images/$1.$2 last;
+  rewrite ^/api/?(.*)$ /webservice/dispatcher.php?url=$1 last;
+  rewrite ^(/install(?:-dev)?/sandbox)/.* /$1/test.php last;
+
+  include /etc/nginx/global_settings;
+
+  try_files $uri $uri/ /index.php?$args;
+  index index.php index.html;
+
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_intercept_errors on;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    try_files $uri =404;
+    fastcgi_read_timeout 3600;
+    fastcgi_send_timeout 3600;
+    fastcgi_param HTTPS $fastcgi_https;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+    fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+    add_header Access-Control-Allow-Origin "*";
+    add_header alt-svc 'h3=":443"; ma=86400';
+    expires max;
+    access_log off;
+  }
+
+  if (-f $request_filename) {
+    break;
+  }
+}

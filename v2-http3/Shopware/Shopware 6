@@ -1,9 +1,13 @@
-#{"rootDirectory":"Web","phpVersion":"8.3"}
+#{"rootDirectory":"public","phpVersion":"8.3"}
 server {
   listen 80;
   listen [::]:80;
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
   {{server_name}}
@@ -13,7 +17,7 @@ server {
   {{nginx_error_log}}
 
   if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
+    rewrite ^ https://$host$request_uri permanent;
   }
 
   location ~ /.well-known {
@@ -22,6 +26,27 @@ server {
   }
 
   {{settings}}
+
+  location /recovery/update/ {
+    index index.php;
+    try_files $uri /recovery/install/index.php$is_args$args;
+  }
+
+  location ~ ^/(recovery\/update\/index|index|shopware-installer\.phar)\.php(/|$) {
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+    include fastcgi.conf;
+    fastcgi_param HTTP_PROXY "";
+    fastcgi_buffers 8 16k;
+    fastcgi_buffer_size 32k;
+    proxy_connect_timeout 300s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    send_timeout 300s;
+    client_body_buffer_size 128k;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+  }
+
+  include /etc/nginx/global_settings;
 
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
@@ -35,11 +60,20 @@ server {
     fastcgi_read_timeout 3600;
     fastcgi_send_timeout 3600;
     fastcgi_param HTTPS $fastcgi_https;
-    fastcgi_param FLOW_CONTEXT Development;
-    #fastcgi_param FLOW_CONTEXT Production;
-    fastcgi_param FLOW_REWRITEURLS 1;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  location = /sitemap.xml {
+    log_not_found off;
+    access_log off;
+    try_files $uri /;
+  }
+
+  location = /robots.txt {
+    log_not_found off;
+    access_log off;
+    try_files $uri /;
   }
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {

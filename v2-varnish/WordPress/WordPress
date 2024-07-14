@@ -28,6 +28,8 @@ server {
   }
 
   location ~/(wp-admin/|wp-login.php) {
+    #auth_basic "Restricted Area";
+    #auth_basic_user_file /home/site-user/.htpasswd;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header X-Forwarded-Host $http_host;

@@ -1,4 +1,4 @@
-#{"rootDirectory":"Web","phpVersion":"8.3"}
+#{"rootDirectory":"","phpVersion":"8.3"}
 server {
   listen 80;
   listen [::]:80;
@@ -35,9 +35,6 @@ server {
     fastcgi_read_timeout 3600;
     fastcgi_send_timeout 3600;
     fastcgi_param HTTPS $fastcgi_https;
-    fastcgi_param FLOW_CONTEXT Development;
-    #fastcgi_param FLOW_CONTEXT Production;
-    fastcgi_param FLOW_REWRITEURLS 1;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
   }

@@ -1,9 +1,13 @@
-#{"rootDirectory":"public","phpVersion":"8.3","varnishCacheSettings":{"cacheLifetime":"604800","controller":"generic","excludes":["^\/admin\/"],"excludedParams":["__SID","noCache"]}}
+#{"rootDirectory":"","phpVersion":"8.3","varnishCacheSettings":{"cacheLifetime":"604800","controller":"generic","excludes":["^\/admin\/"],"excludedParams":["__SID","noCache"]}}
 server {
   listen 80;
   listen [::]:80;
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
   {{server_name}}
@@ -13,7 +17,7 @@ server {
   {{nginx_error_log}}
 
   if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
+    rewrite ^ https://$host$request_uri permanent;
   }
 
   location ~ /.well-known {
@@ -25,8 +29,8 @@ server {
 
   location / {
     {{varnish_proxy_pass}}
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_hide_header X-Varnish;
@@ -41,10 +45,15 @@ server {
     proxy_temp_file_write_size 256k;
   }
 
-  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map)$ {
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map|mjs)$ {
     add_header Access-Control-Allow-Origin "*";
+    add_header alt-svc 'h3=":443"; ma=86400';
     expires max;
     access_log off;
+  }
+
+  location ~ /\.(ht|svn|git) {
+    deny all;
   }
 
   if (-f $request_filename) {
@@ -57,6 +66,8 @@ server {
   listen [::]:8080;
   {{server_name}}
   {{root}}
+
+  include /etc/nginx/global_settings;
 
   try_files $uri $uri/ /index.php?$args;
   index index.php index.html;
@@ -73,12 +84,6 @@ server {
     fastcgi_param SERVER_PORT 443;
     fastcgi_pass 127.0.0.1:{{php_fpm_port}};
     fastcgi_param PHP_VALUE "{{php_settings}}";
-  }
-
-  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map)$ {
-    add_header Access-Control-Allow-Origin "*";
-    expires max;
-    access_log off;
   }
 
   if (-f $request_filename) {
