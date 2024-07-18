@@ -1,0 +1,80 @@
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  {{ssl_certificate_key}}
+  {{ssl_certificate}}
+  {{server_name}}
+  {{root}}
+
+  {{nginx_access_log}}
+  {{nginx_error_log}}
+
+  add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive";
+
+  if ($scheme != "https") {
+    rewrite ^ https://$host$uri permanent;
+  }
+
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
+  {{settings}}
+
+  index index.php;
+  autoindex off;
+
+  location / {
+    try_files $uri $uri/ $uri.html $uri.php$is_args$query_string;
+  }
+
+  location /l/ {
+    rewrite ^/l/([a-zA-Z0-9/]+)$ /l.php?i=$1 last;
+  }
+
+  location /t/ {
+    rewrite ^/t/([a-zA-Z0-9/]+)$ /t.php?i=$1 last;
+  }
+
+  location /w/ {
+    rewrite ^/w/([a-zA-Z0-9/]+)$ /w.php?i=$1 last;
+  }
+
+  location /unsubscribe/ {
+    rewrite ^/unsubscribe/(.*)$ /unsubscribe.php?i=$1 last;
+  }
+
+  location /subscribe/ {
+    rewrite ^/subscribe/(.*)$ /subscribe.php?i=$1 last;
+  }
+
+  location /confirm/ {
+    rewrite ^/confirm/(.*)$ /confirm.php?i=$1 last;
+  }
+
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_intercept_errors on;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    try_files $uri =404;
+    fastcgi_read_timeout 3600;
+    fastcgi_send_timeout 3600;
+    fastcgi_param HTTPS $fastcgi_https;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+    fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
+    add_header Access-Control-Allow-Origin "*";
+    expires max;
+    access_log off;
+  }
+
+  if (-f $request_filename) {
+    break;
+  }
+}
