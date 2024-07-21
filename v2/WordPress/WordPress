@@ -21,6 +21,14 @@ server {
     allow all;
   }
 
+  location ~ /\. {
+    deny all;
+  }
+
+  location ~* /(?:uploads|files)/.*\.php$ {
+    deny all;
+  }
+
   {{settings}}
 
   try_files $uri $uri/ /index.php?$args;
