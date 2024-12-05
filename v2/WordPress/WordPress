@@ -21,10 +21,6 @@ server {
     allow all;
   }
 
-  location = /xmlrpc.php {
-    deny all;
-  }
-
   {{settings}}
 
   try_files $uri $uri/ /index.php?$args;
