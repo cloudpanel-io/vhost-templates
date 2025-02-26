@@ -31,6 +31,11 @@ server {
     deny all;
   }
 
+  # Uncomment the following to exclude admin-ajax.php from basic auth if it breaks frontend functionality.
+  #location ~* ^/wp-admin/admin-ajax\.php$ {
+  #  auth_basic off;
+  #}
+
   location ~/(wp-admin/|wp-login.php) {
     #auth_basic "Restricted Area";
     #auth_basic_user_file /home/site-user/.htpasswd;
