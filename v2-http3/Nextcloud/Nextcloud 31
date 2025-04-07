@@ -46,7 +46,6 @@ server {
     application/wasm wasm;
   }
 
-
   location ^~ /.well-known {
     # The rules in this block are an adaptation of the rules
     # in `.htaccess` that concern `/.well-known`.
