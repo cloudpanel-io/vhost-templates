@@ -41,8 +41,6 @@ server {
 
   {{settings}}
 
-  include /etc/nginx/global_settings;
-
   add_header Cache-Control no-transform;
 
   index index.html;
