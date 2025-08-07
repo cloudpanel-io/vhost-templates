@@ -1,9 +1,13 @@
-#{"rootDirectory":"","phpVersion":"7.4"}
+#{"rootDirectory":"","phpVersion":"8.2"}
 server {
   listen 80;
   listen [::]:80;
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
   {{server_name}}
@@ -13,7 +17,7 @@ server {
   {{nginx_error_log}}
 
   #if ($scheme != "https") {
-  #  rewrite ^ https://$host$uri permanent;
+  #  rewrite ^ https://$host$request_uri permanent;
   #}
 
   location ~ /.well-known {
@@ -22,6 +26,8 @@ server {
   }
 
   {{settings}}
+
+  include /etc/nginx/global_settings;
 
   rewrite ^/(.*.php)(/)(.*)$ /$1?file=/$3 last;
 
@@ -43,6 +49,7 @@ server {
 
   location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf)$ {
     add_header Access-Control-Allow-Origin "*";
+    add_header alt-svc 'h3=":443"; ma=86400';
     expires max;
     access_log off;
   }
