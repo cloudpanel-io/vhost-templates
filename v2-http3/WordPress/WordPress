@@ -30,10 +30,64 @@ server {
   location ~/\.git {
     deny all;
   }
-
   location = /xmlrpc.php {
     deny all;
   }
+  
+  # BLOCK WORDPRESS README & LICENSE FILES
+  location ~* ^/(readme|license|changelog)\.(html|txt|md)$ {
+    deny all;
+  }
+  
+  # BLOCK WP-CONFIG FILES (ALL VARIANTS)
+  location ~* (wp-config\.php|wp-config\.txt|wp-config\.old|wp-config\.bak|wp-config-sample\.php) {
+    deny all;
+  }
+  location = /wp-config.php { 
+    deny all; 
+  }
+  location = /wp-config-sample.php {
+    deny all; 
+  }
+  location ~* /composer\.(json|lock)$ { deny all; }
+  
+  # BLOCK ALL HIDDEN FILES (DOTFILES)
+  location ~ (^|/)\. {
+    deny all;
+  }
+
+  # BLOCK ALL .INI FILES (PHP CONFIG FILES)
+  location ~* \.ini$ { 
+    deny all;
+  }
+  # BLOCK .HTACCESS
+  location = /.htaccess {
+    deny all;
+  }
+  # BLOCK LOG FILES
+  location ~* \.(log|logs)$ {
+    deny all;
+  }
+  
+  # BLOCK BACKUP & ARCHIVE FILES
+  #location ~* \.(sql|gz|tar|zip|bak|old|tmp|swp|swo|~)$ {
+  #  deny all;
+  #}
+  
+  # BLOCK PHP IN WP-CONTENT/UPLOADS
+  location ~* ^/wp-content/uploads/.*\.php$ {
+    deny all;
+  }
+  
+  # BLOCK PHP IN WP-INCLUDES
+  location ~* ^/wp-includes/.*\.php$ {
+    deny all;
+  }
+
+  # BLOCK INSTALLER/UPGRADE SCRIPTS
+  #location ~* ^/wp-admin/(install\.php|upgrade\.php|setup-config\.php)$ {
+  #  deny all;
+  #}
 
   # Uncomment the following to exclude admin-ajax.php from basic auth if it breaks frontend functionality.
   #location ~* ^/wp-admin/admin-ajax\.php$ {
