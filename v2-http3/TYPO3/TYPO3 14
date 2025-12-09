@@ -27,9 +27,9 @@ server {
 
   {{settings}}
 
-  location /typo3/ {
-    try_files $uri $uri/ /typo3/index.php?$args;
-  }
+  #location /typo3/ {
+  #  try_files $uri $uri/ /typo3/index.php?$args;
+  #}
 
   include /etc/nginx/global_settings;
 
