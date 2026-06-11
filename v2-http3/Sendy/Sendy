@@ -22,7 +22,7 @@ server {
     rewrite ^ https://$host$request_uri permanent;
   }
 
-  location ~ /.well-known {
+  location ^~ /.well-known/ {
     auth_basic off;
     allow all;
   }

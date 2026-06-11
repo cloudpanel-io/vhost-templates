@@ -18,7 +18,7 @@ server {
     return 301 https://$host$request_uri;
   }
 
-  location ~ /.well-known {
+  location ^~ /.well-known/ {
     auth_basic off;
     allow all;
   }
