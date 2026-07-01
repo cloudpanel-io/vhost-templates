@@ -1,4 +1,4 @@
-#{"rootDirectory":"webroot","phpVersion":"8.4"}
+#{"rootDirectory":"webroot","phpVersion":"8.5"}
 server {
   listen 80;
   listen [::]:80;
