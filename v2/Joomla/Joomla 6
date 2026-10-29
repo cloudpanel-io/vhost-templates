@@ -23,7 +23,13 @@ server {
 
   {{settings}}
 
-  try_files $uri $uri/ /index.php?$args;
+  location /api/ {
+    try_files $uri $uri/ /api/index.php?$args;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.php?$args;
+  }
   index index.php index.html;
 
   location ~ \.php$ {
